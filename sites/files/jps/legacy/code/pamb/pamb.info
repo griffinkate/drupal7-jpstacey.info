@@ -1,0 +1,5 @@
+; $Id$
+name = Postcode Anywhere & MailBuild
+description = Integrates with two web services for address autocompletion and addition to external mailing lists
+package = Web services
+

@@ -1,0 +1,210 @@
+<?php
+/**
+ * Definitions
+ */
+/* Postcode Anywhere */
+define('PA_URL', 'http://services.postcodeanywhere.co.uk/csv.aspx');
+define('PA_LICENCE', 'AB12-CD34-EF56-GH78');
+define('PA_ACCOUNT', 'XXXXX99999');
+/* Lookups of this postcode do not cost any credit */
+define('PA_TEST_PC', 'WR2 6NJ');
+
+/* Mailbuild */
+define('MB_URL', 'http://yoursitename.createsend.com/api/api.asmx');
+define('MB_API_KEY', '0123456789abcdef0123456789abcdef');
+define('MB_API_ACTION', 'http://api.createsend.com/api/Subscriber.AddWithCustomFields');
+/* Note that each list has a different ID, but segments are automatically
+   generated based on filters */
+define('MB_MY_NEWSLETTER_LIST', '0123456789abcdef0123456789abcdef');
+define('MB_BLANK_EMAIL', 'none@example.com');
+
+/**
+ * PA CALL: ByPostcode
+ *
+ * Get the descriptions of all addresses for a given postcode
+ *
+ * @param $pc tidy postcode
+ * @return structured data from pamb_parse_csv()
+ */
+function pamb_pa_get_bypostcode($pc) {
+  // Get a PA URL
+  $url = pamb_pa_url("lookup", array("type" => "by_postcode", "postcode" => $pc) );
+  
+  // Make HTTP request; capture structured response
+  $r = drupal_http_request($url);
+
+  // Always return an array for safe foreach()ing
+  $ret = array();
+  if ($r->code == 200) {
+    $ret = pamb_parse_csv($r->data);
+  }
+
+  return $ret;
+}
+
+/**
+ * PA CALL: lookup
+ *
+ * Get the structured data for a single address, given an ID
+ *
+ * @param $pc PA ID
+ * @return structured data from pamb_parse_csv()
+ */
+function pamb_pa_get_lookup($id) {
+  // Testing - override
+  $pc = PA_TEST_PC;
+
+  // Get a PA URL
+  $url = pamb_pa_url("fetch", array("style" => "simple", "id" => "$id"));
+
+  // Make HTTP request; capture structured response
+  $r = drupal_http_request($url);
+
+  // Always return an array for safe foreach()ing
+  $ret = array();
+  if ($r->code == 200) {
+    $ret = pamb_parse_csv($r->data);
+  }
+
+  return $ret;
+}
+
+/**
+ * Construct a URL for Postcode Anywhere, including the account and licence codes
+ *
+ * @param $action action method
+ * @param $data other URL parameters
+ * @return URL string
+ */
+function pamb_pa_url($action, $data = array()) {
+  $url = PA_URL
+    . "?account_code=" . PA_ACCOUNT
+    . "&license_code=" . PA_LICENCE
+    . "&action=" . urlencode($action);
+
+  foreach($data as $k => $v) {
+    $url .= "&" . urlencode($k) . "=" . urlencode($v);
+  }
+
+  return $url;
+}
+
+/**
+ * MailBuild: send SOAP packet
+ *
+ * From a form submission, construct a SOAP packet with a theme call
+ *
+ * @param $pc PA ID
+ * @return on error, structure of sent data and reply, or nothing if successful
+ */
+function pamb_mb_send_soap($form_id, $form_values) {
+
+  // We're going to need the theme for the SOAP packet creation
+  init_theme();
+
+  // Construct SOAP packet variables
+  // Set a MB URL and action
+  $url = MB_URL;
+  $SOAPaction = MB_API_ACTION;
+  // Data structure
+  $soap_data = array(
+    'auth' => array(
+      'key' => MB_API_KEY,
+      'list' => MB_MY_NEWSLETTER_LIST,
+    ),
+    'basic' => array(
+      'name' => trim($form_values['first_name']) . " " . trim($form_values['surname']),
+      'email' => $form_values["email"]
+    ),
+    // Some sample custom items - may vary
+    'custom' => array(
+      'Title' =>  $form_values['title'],
+      'Address1' => $form_values['address_1'],
+      'Address2' => $form_values['address_2'],
+      'Address3' => $form_values['address_3'],
+      'Address4' => $form_values['address_4'],
+
+      'Town' => $form_values['town'],
+      'County' => $form_values['county'],
+      'Postcode' => $form_values['postcode_final'],
+
+      'Options' => (!empty($form_values["email_sub"]) ? 'yes_brochure,yes_newsletter' : 'yes_brochure,no_newsletter'),
+
+    ),
+  );
+
+  // Call the theme file, passing in the structured data
+  $soap_packet = _phptemplate_callback('pambsoap', $soap_data);
+
+  // Make HTTP request; capture structured response
+  $r = drupal_http_request(
+    $url,
+    array(
+      'Content-Type' => 'text/xml; charset=utf-8',
+      'SOAPAction' => MB_API_ACTION
+    ),
+    'POST',
+    $soap_packet
+  );
+
+  // Return nothing if successful
+  if ($r->code == 200) {
+    return;
+  }
+  // Return whole array if not successful
+  else {
+    return $r;
+  }
+}
+
+
+/**
+ * Parse a CSV string (not a file) and return structured data
+ *
+ * @param $str string
+ * @param $keys_first boolean - whether to take the first line as a set of keys
+ * @param $delimiter typically a comma
+ * @param $enclosure typically a double-quote charactyer
+ * @param $len line length (for fgetcsv() reading) - 4096 should be enough but may need more
+ * @return array of row arrays, where the cells in the rows are keyed by either index or the keys in the first line
+ */
+function pamb_parse_csv($str, $keys_first = true, $delimiter="," , $enclosure='"', $len = 4096) {
+  // Write to a memory "file"
+  $fh = fopen('php://memory', 'rw');
+  fwrite($fh, $str);
+  // Rewind and read off with fgetcsv()
+  rewind($fh);
+  // Keys on first row?
+  if ($keys_first) {
+    $keys = fgetcsv($fh, $len, $delimiter, $enclosure);
+  }
+
+  // Initialize return data
+  $result = array();
+
+  // Loop over the in-memory file
+  while (!feof($fh)) {
+    // Parse a line and, if we've no keys, use it to source a set of numerical indices
+    $vals = fgetcsv($fh, $len, $delimiter, $enclosure);
+    if (!$keys) {
+      $keys = array_keys($vals);
+    }
+    // Convert the parsed line into a row to stick in the return data
+    $result_row = array();
+    for($i = 0; $i < count($keys); $i++) {
+      $result_row[$keys[$i]] = $vals[$i]; 
+    }
+    $result[] = $result_row;
+  }
+
+  // Close file and return data
+  fclose($fh);
+  return $result;
+}
+
+/**
+ * Definition of theme('pambsoap')
+ */
+function theme_pambsoap($auth = array(), $basic = array(), $custom = array()) {
+  return "";
+}

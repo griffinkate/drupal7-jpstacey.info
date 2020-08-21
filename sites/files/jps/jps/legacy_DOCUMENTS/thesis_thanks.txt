@@ -1,0 +1,55 @@
+Acknowledgements
+
+I would like to begin by thanking Prof Andrew Steane, my supervisor. His
+enthusiasm and advice have been indispensable in completing the work
+presented here: from the quick fixes to the bigger pictures, and all the
+details in between. I must also express my gratitude to Prof Derek Stacey.
+It has been a pleasure and a privilege to work alongside them both.
+
+I feel I must mention the other members of the ion-trapping group, if only
+to ensure that they'll let me back into the department. I am grateful to
+Dr.  David Lucas for his companionship and his tirelessness both in the
+office and while running experiments. Matthew McDonnell, Dr. Charles
+Donald and, more recently, Simon Webster and Jonathan Home have all
+contributed towards making my time as a DPhil student worthwhile. Spending
+several years in the same office as them has necessarily honed my wit as
+well as my wits, and I will miss having someone to insult. Thanks also to
+Drs. Angel Ramos and Marek Sasura, and to Dr. David Stevens.
+
+My construction work and time in the basement of the Clarendon Laboratory
+would not have been the same without the presence of Graham Quelch and
+George Matthews. Between them they have no doubt saved several of my
+fingers during machining or drilling. Also I appreciate the hard work
+carried out by the occupants of the main Clarendon Workshop on my behalf,
+and also by David T Smith, Johan Fopma and everyone in the Central
+Electronics Group. Thanks also to everyone else in the
+department---academic, administrative and support staff---who have been
+consistently helpful and generous with their time.
+
+My undergraduate tutor, Dr. Geoff Brooker, might be considered to be
+indirectly to blame for everything presented here. His tuition was
+inspirational, and showed me just how enjoyable physics could be. He has
+recently offered advice on the work in this thesis, for which I am also
+grateful. I must also mention Michael Bancroft, who provided so much
+encouragement at school: thank you.
+
+After so many years in Oxford I have friends far too numerous to thank
+here individually. DougSoc, that indescribable, inscrutable society of
+either `weirdos and oddballs' or `intellectual giants at play:' I'm glad I
+have been able to come out to play with you all so many times, and I'm
+grateful for the skinned knees and grass stains it left me with. Members
+of Wadham, past and present: my friendships with you are what turned my
+occupation of just another collection of limestone quadrangles into
+something worthwhile. Friends from Queen Elizabeth's Grammar School: if
+these acknowledgements were being read out at Speech Night, we'd all be
+asleep by now, or running a book on what time it will all finish. I miss
+your companionship, now we have all dispersed.
+
+The emotional and financial assistance of my family has been
+inexhaustible. I am grateful for the support, love and pride of my parents
+and my Grandfather, and of my late Grandmother. Thank you so much; I love
+you all and owe you a debt I can never repay. It only remains for me to
+thank Kate: for the freaky faces she pulls and the squeaky noises she
+makes; for the late-night telephone calls and the animal impressions; my
+prop, my friend, my darlen.
+

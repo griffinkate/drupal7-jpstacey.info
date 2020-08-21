@@ -1,0 +1,178 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+	<head>
+	<title>Blogthis: a plugin for Wordpress by J-P Stacey</title>
+	</head>
+<body>
+
+<h1>Blogthis!</h1>
+
+<h2>Summary</h2>
+
+<p>Blogthis! is a Wordpress plugin which provides your blog with a list of links for visitors to click on. These links will submit your story's URL to several online aggregators and favourites sites, like <a href="http://del.icio.us/" >del.icio.us</a> and <a href="http://digg.com/" >Digg</a>.</p>
+
+<p>It's highly customizable through its own admin interface, so aggregators can be added or removed as the top websites change over time.</p>
+
+<p>Licensing information is available at the end of this document. Any queries please feel free to contact the author at &lt;me&gt; at jpstacey.info.</p>
+
+<h2>What you will need</h2>
+
+<p>To install the plugin you'll need to know how to get either the contents of zipfiles or subversion repositories into your Wordpress blog directories. To make the stories appear on the page you'll need to be happy making minor edits to your Wordpress templates. And if you want it to look good&#x2014;say, a list of links that appears when you hover over the "Blog this" text&#x2014;you'll need to be handy with CSS. Some CSS is included in this documentation, but it's not the author's strong point by any means.</p>
+
+<h2>Download and install</h2>
+
+<p>Blogthis! is available as a zipfile (not always up to date) at &lt;<a href="http://www.jpstacey.info/blog/files/code/blogthis.zip">http://www.jpstacey.info/blog/files/code/blogthis.zip</a>&gt;. When you unpack this zipfile it should create a directory called <code>blogthis</code>, which you'll need to move to the <code>wp-content/plugins</code> subdirectory of your Wordpress blog.</p>
+
+<p>The most recent code is accessible via <a href="http://subversion.tigris.org/">subversion</a>. The command line tool <code>svn</code> can be used to obtain the code from the WP-Plugins archive as follows:</p>
+
+<blockquote><p><i>From the blog's directory</i><br/>
+<pre>% cd wp-content/plugins
+% svn co http://svn.wp-plugins.org/blogthis/trunk blogthis</pre></p></blockquote>
+
+<p>Either way, you should now be able to switch the plugin on in Wordpress administration. In your browser, navigate to the Plugins admin section and click on "Activate" by the Blogthis entry. A sub-navigation link should now appear in the Plugins section saying "Blogthis!"</p>
+
+<h2>Including in your stories</h2>
+
+<p>Including the Blogthis! dropdown in your stories is easy enough, but requires a small amount of template editing. You can edit the templates from the command line, but if you're not sure how to do that then navigate in Wordpress admin to "Presentation"&nbsp;&gt;&nbsp;"Theme Editor". Depending on your theme you might need to edit different files, but look for a file containing <code>the_title()</code>, which is where the title of each post is output by Wordpress.</p>
+
+<p>Once you've got an idea where you want the list of blogthis links to appear&#x2014;if you want them to appear as a static list, they'll probably look good at the end of the post; a dropdown box would look best at the top of the post&#x2014;then add the following PHP code into the template:</p>
+
+<blockquote><p>
+	<pre>&lt;?php if (function_exists('wp_blogthis')) wp_blogthis(); ?&gt;</pre>
+</p></blockquote>
+
+<p>The <code>function_exists</code> check means that, if you ever want to switch off Blogthis! (as if you would) then you can just do so in Wordpress admin without needing to re-edit these templates.</p>
+
+<p>Power-users can add a bit of extra code when testing their CSS, so that only they can tell what a mess they're making of the styling. The following is a suggested solution:</p>
+
+<blockquote><p>
+	<pre>&lt;?php if (array_key_exists('plugintest'), $_GET) {
+	if (function_exists('wp_blogthis')) wp_blogthis(); 
+} ?&gt;</pre>
+</p></blockquote>
+
+<p>Then, if you append either <code>?plugintest=true</code> or <code>&amp;plugintest=true</code> to your blog URL (depending on whether the URL already has a "?" in it or not) you'll be able to see the results of your styling.</p>
+
+<p>Non-power users might have more luck with plugins that make their blog temporarily unavailable to site visitors e.g. the <a href="http://sw-guide.de/wordpress/maintenance-mode-plugin/">Maintenance Mode</a> plugin.</p>
+
+<p>Once included, the Blogthis! code will produce the following HTML where it sits in the template:</p>
+
+<blockquote><p>
+<pre>&lt;div class="blog-this"&gt;Blog this:
+    &lt;ul class="blog-this-links"&gt;
+        &lt;li&gt;&lt;a href=". . ."&gt;&lt;img&gt; Link text&lt;/a&gt;&lt;/li&gt;
+        . . .
+    &lt;/ul&gt;
+&lt;/div&gt;</pre></p>
+</blockquote>
+
+
+<h2>Images and styles</h2>
+
+<p>By now you should be able to see a list of links on your page. They might not look how you want them to, and furthermore you might not be able to see the few images that come pre-packed in the Blogthis! installation. Here's where we try to remedy that.</p>
+
+<h3>Finding images</h3>
+
+<p>Images are to be found alongside the Blogthis! program files. How this translates to someone's <em>browser</em> finding them is another matter.</p>
+
+<p>Either your blog's front page URL is at e.g. <code>http://www.example.com/</code>, or that URL will have more directories e.g. <code>http://www.example.com/blog/</code>. Wherever it is, the images will almost always be further down in the site at <code>.../wp-content/plugins/blogthis/</code>
+
+<p>With this in mind, navigate in the admin interface to "Plugins"&nbsp;&gt;&nbsp;"Blogthis!" Check the relative/absolute URL for images. In the first example above it should be <code>blog/wp-content/plugins/blogthis</code>; in the second, just <code>wp-content/plugins/blogthis</code>.</p>
+
+<p>If your images are stored on a totally different website, you can put the URL in here instead. Just make sure it begins <code>http://...</code> and the images should appear.</p>
+
+<h3>Styling your list</h3>
+
+<p><b>DISCLAIMER:</b> the author has a terrible eye for design. He understands CSS the same way as he understands basic theology: he can work his way through it with the lack of skill and flair that only an agnostic could exhibit. He <em>strongly</em> recommends you come up with your own CSS. Please don't blame him if the CSS herein makes your Blogthis! disappear altogether, or fall entirely to pieces on some browsers.</p>
+
+<p>Depending on the styling of the rest of your blog, certain stylistic tricks might or might not work. The styling of the HTML that Blogthis! is embedded in will affect how well even "standard" CSS tricks will work. The following is a fragment of CSS that works for the author's blog. If you really want to try it, add a piece at a time and see how that affects the styling:</p>
+
+<blockquote><p>
+<pre>.blog-this, .blog-this-links a {
+        font-size: 0.7em;
+}
+
+.blog-this {
+        float: right;
+        width: 100px;
+
+        position: relative;
+
+        background-color: white;
+        border: solid #E3F5FE; 1px;
+
+	padding-bottom: 0.2em;
+	text-indent: 0.2em;
+}
+
+.blog-this-links, .blog-this-links li {
+	display: block;
+	margin: 0 !important;
+	text-indent: 0;
+}
+
+.blog-this-links li {
+	padding: 1px 0 1px 3px !important;
+}
+
+.blog-this-links li a {
+	display: block;
+}
+.blog-this-links li a img {
+	float: left;
+	display: block;
+	position: relative;
+	padding: 2px 2px 0;
+}
+
+.blog-this-links {
+        background-color: #E3F5FE;
+	width: 102px;
+
+	display: none;
+        position: absolute;
+	left: -1px;
+	top: 1.1em;
+	overflow: hidden;
+}
+
+div:hover.blog-this .blog-this-links, div:hover.blog-this-links {
+	display: block;
+}
+</pre></p></blockquote>
+
+<p><b>Another DISCLAIMER:</b> boxes popping down when you move the mouse over them is a known problem in Internet Explorer 6 and below. Solving it for you is outside the scope of this documentation. The author can only recommend you investigate the <code>behavior: url(csshover.htc)</code> trick described on <a href="http://www.xs4all.nl/~peterned/csshover.html" >Peter Nederlof’s blog</a>.</p>
+
+<h2>Further configuration</h2>
+
+<p>At the time of writing, the main element of configuration in Blogthis! is the addition of extra links. To add an extra link, fill out the empty boxes at the bottom of the form in the Blogthis! page in Wordpress plugin administration. The "Feed name" should match the name of the image filename for the link (see the next paragraph), less the ".gif" suffix. To remove any link, delete the content from all of its boxes.</p>
+
+<p>You'll need to add extra images to the plugin directory for any new links. That should be easy enough, but make sure the images are small enough: Blogthis! does no image scaling on the page. Also, only GIFs are currently supported. This is because, when you've added the image, type its filename (less the ".gif" suffix) in the Wordpress plugin admin form and a preview of the image should appear after saving if all is well.</p>
+
+<h2>Future enhancements</h2>
+
+<p>The author prefers writing exciting, useful programs to documenting them; that's for certain. Anyway, if you've any ideas for improvements then please let him know. Address at the end. Planned improvements include:</p>
+
+<ul>
+	<li>configuring the HTML around Blogthis! links to make it easier to style</li>
+	<li>making adding and sorting of entries in the admin interface easier</li>
+	<li>proper versioning of the codebase with the subversion repository</li>
+</ul>
+
+<h2>Licensing</h2>
+
+<p>This software is provided as is, under the GNU Public Licence. Any GPL variant will probably be fine: the author has no inclination to sort between all the minor differences. If you desperately require clarification between versions for your own use then check with the author and he will then make the effort: there's little point otherwise. As long as you redistribute the software under the GPL and (as a courtesy if nothing else) say who and where you got it from, that's fine.</p>
+
+<h2>Credits</h2>
+
+<p>This plugin and documentation by J-P Stacey, 2006. Contact him at &lt;me&gt; at jpstacey.info : he reads all his email, eventually.</p>
+
+<p>Thanks to Mark Fay &lt;<a href="http://www.markfay.id.au" >http://www.markfay.id.au</a>&gt; for feedback.</p>
+
+<p style="text-align: right; font-style: italics">Cheers,<br/>
+JPS<br/>
+November 2006</p>
+
+
+</body> </html>
+

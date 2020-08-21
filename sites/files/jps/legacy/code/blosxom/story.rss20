@@ -1,0 +1,14 @@
+<!-- Blosxom flavour for RSS 2.0
+	Modified from Eric Davis' flavour for import into WordPress -->
+<item>
+	<!-- Unescape incorrectly-escaped Unicode entities in title -->
+        <title><@rss_to_wp.unescapeAmp foo="$title" output="yes" /></title>
+        <link>$url$path/$fn.html</link>
+        <description><![CDATA[$body]]></description>
+        <pubDate>$dw, $da $mo $yr $hr:$min:00 GMT</pubDate>
+	<!-- Support multiple categories -->
+        <category><@rss_to_wp.pathtocats foo="$path" output="yes" /></category>
+        <guid isPermaLink="true">$url$path/$fn.html</guid>
+        <author>Administrator</author>
+        $writeback::writebacks
+</item>

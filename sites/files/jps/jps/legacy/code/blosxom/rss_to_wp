@@ -1,0 +1,71 @@
+#!/usr/bin/perl -w
+# Blosxom Plugin: rss_to_wp
+# Author(s): jps
+# Version: n/a
+# Blosxom Home/Docs/Licensing: http://www.raelity.org/apps/blosxom/
+#
+# A number of fixes for the RSS2.0 -> WordPress import
+#
+#	Requires:
+#		interpolate_fancy
+#		changes to rss20 flavour templates as described below
+
+package rss_to_wp;
+
+sub start { 1; }
+
+# Wordpress converts newlines to <br/>, which can break linewrapped
+# tags e.g. <a title="..." [newline] href="...">
+sub story {
+  	my($pkg, $path, $filename, $story_ref, $title_ref, $body_ref) = @_;
+  	${$body_ref} =~ s/[\n\s]+/ /gis;
+}
+
+# Turn a Blosxom path - /category/subcategory/subsubcategory - into
+# a list delimited by "</category><category>" instead
+#
+# Usage: 
+#	include interpolate_fancy package
+#	then in flavour templates, write e.g:
+#		<title><@rss_to_wp.unescapeAmp text="$title" output="yes" /></title>
+sub pathtocats {
+	# Package
+	my $arg1 = shift;
+	# Hash ref
+	my $arg2 = shift;
+
+	# Get path attribute of quasi-tag
+	my $path = $arg2->{path};
+
+	# Strip off any initial whitespace or a slash
+	$path =~ s!^\s*/?!!;
+	# All other slashes become tag close/open
+	$path =~ s!/!</category>\n\n<category>!g;
+
+	return $path;
+}
+
+# Some fields get incorrectly escaped, so unescape any Unicode entities
+# we find in these
+#
+# Usage: 
+#	include interpolate_fancy package
+#	then in flavour templates, write e.g:
+#		<category><@rss_to_wp.pathtocats path="$path" output="yes" /></category>
+sub unescapeAmp {
+	# Package
+	my $arg1 = shift;
+	# Hash ref
+	my $arg2 = shift;
+
+	# Escape all entities of the forms
+	#	#999999...
+	#	#x999999...
+	#	abcdef...
+	$arg2->{text} =~ s/&amp;(#x?[0-9a-f]+|[a-z]+);/&\1;/gi;
+
+	return $arg2->{text};
+}
+
+# Blosxom needs this to know the package is valid
+1;

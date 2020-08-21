@@ -1,0 +1,65 @@
+Stabilization and Control In a Linear Ion Trap
+
+
+A thesis submitted for the degree of Doctor of Philosophy
+
+John-Patrick Stacey
+
+Trinity Term, 2003; Wadham College, Oxford
+
+
+Abstract
+
+This thesis describes experimental work towards developing a trapped ion
+quantum information processor. An existing ion trap apparatus was capable
+of trapping and laser-cooling single ions or small ion strings of 40Ca+,
+and had been used for studies of quantum jumps and natural lifetime
+measurements in Ca. This thesis describes improvements in this apparatus,
+which have allowed the stability and the flexibility of experimental
+control of the ions to be greatly increased. This enabled experiments to
+read out the spin state of a single trapped ion, and to load ions with
+isotope selectivity through photoionization.
+
+The optical systems were improved by installation of new lasers, optical
+reference cavities, and a system of acousto-optic modulators for laser
+intensity switching and frequency control. The photon counting for
+fluorescence detection was improved, and a new photon time-of-arrival
+correlation circuit developed. This has permitted rapid and more sensitive
+detection of micromotion, and hence cancellation of stray fields in the
+trap.
+
+A study of resonant circuits in the low RF, high voltage (10 MHz, 1 kV)  
+regime was carried out with a view to developing a new RF supply for the
+Paul trap with reduced noise and increased power. A new supply based on a
+helical resonator was built and used to trap ions. This technique has
+reduced noise and will permit higher secular frequencies to be attained in
+the future.
+
+A magnetic field B in the ion trap is used to define a quantization axis,
+and in one series of experiments was required to be of order 100G to
+provide a substantial Zeeman splitting. A set of magnetic field coils to
+control the size and direction of B is described.  The design of these
+posed some problems owing to an unforseen issue with the vacuum chamber.
+In short, it is magnetizable and acts to first approximation like a
+magnetic shield. The field coils had to be sufficiently substantial to
+produce the desired field at the ion even in the presence of this
+shielding effect, and dark resonance (and other) spectra with Zeeman
+splitting were obtained to calibrate the field using the ion as a probe.
+
+Finally, the thesis describes the successful loading of the ion trap by
+laser photoionization from a weak atomic beam. This involved two new
+lasers at 423 nm and 389 nm.  Saturated absorption spectroscopy of neutral
+calcium is first described, then transverse excitation of an atomic beam
+in our vacuum chamber is used to identify all the main isotopes of calcium
+and confirm their abundances in our source (a heated sample of natural
+calcium). Finally, photoionization is used to load the trap. This has
+three advantages over electron-impact ionization. By avoiding an electron
+gun, we avoid charging of insulating patches and subsequent electric field
+drift as they discharge; the flux in the atomic beam and hence calcium
+(and other) deposits on the electrodes can be greatly reduced; and most
+importantly, the photoionization is isotope selective. Evidence is
+presented which suggests that even with an non-enriched source, the rare
+isotope 43Ca can be loaded with reasonable efficiency. This isotope is
+advantageous for quantum information experiments for several reasons, but
+chiefly because its ground state hyperfine structure can act as a stable
+qubit.

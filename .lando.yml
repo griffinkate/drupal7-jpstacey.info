@@ -1,0 +1,4 @@
+name: jpstacey
+recipe: drupal7
+config:
+  webroot: .

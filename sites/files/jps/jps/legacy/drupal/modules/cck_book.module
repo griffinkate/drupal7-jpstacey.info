@@ -1,0 +1,469 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * CCK Book module
+ *
+ * Structured data for book formats
+ */
+
+/**
+* Declare information about a field type.
+*
+* @return
+*   An array keyed by field type name. Each element of the array is an associative
+*   array with these keys and values:
+*   - "label": The human-readable label for the field type.
+*/
+function cck_book_field_info() {
+  return array(
+    'bookformat' => array('label' => 'Book format'),
+  );
+}
+
+/**
+* Declare information about a widget.
+*
+* @return
+*   An array keyed by widget name. Each element of the array is an associative
+*   array with these keys and values:
+*   - "label": The human-readable label for the widget.
+*   - "field types": An array of field type names that can be edited using
+*     this widget.
+*/
+function cck_book_widget_info() {
+  // Each key in field info needs to be represented in at least one
+  // of the 'field types', if not many. That makes the widget available
+  // to the field type
+  return array(
+    'four_inputs' => array(
+      'label' => 'Description, dimensions and thumbnail dropdown',
+      'field types' => array('bookformat'),
+    ),
+  );
+}
+
+/**
+* Handle the parameters for a field.
+*
+* @param $op
+*   The operation to be performed. Possible values:
+*   - "form": Display the field settings form.
+*   - "validate": Check the field settings form for errors.
+*   - "save": Declare which fields to save back to the database.
+*   - "database columns": Declare the columns that content.module should create
+*     and manage on behalf of the field. If the field module wishes to handle
+*     its own database storage, this should be omitted.
+*   - "filters": If content.module is managing the database storage,
+*     this operator determines what filters are available to views.
+*     They always apply to the first column listed in the "database columns"
+*     array.
+* @param $field
+*   The field on which the operation is to be performed.
+* @return
+*   This varies depending on the operation.
+*   - The "form" operation should return an array of form elements to add to
+*     the settings page.
+*   - The "validate" operation has no return value. Use form_set_error().
+*   - The "save" operation should return an array of names of form elements to
+*     be saved in the database.
+*   - The "database columns" operation should return an array keyed by column
+*     name, with arrays of column information as values. This column information
+*     must include "type", the MySQL data type of the column, and may also
+*     include a "sortable" parameter to indicate to views.module that the
+*     column contains ordered information. Details of other information that can
+*     be passed to the database layer can be found at content_db_add_column().
+*   - The "filters" operation should return an array whose values are 'filters'
+*     definitions as expected by views.module (see Views Documentation).
+*     When proving several filters, it is recommended to use the 'name'
+*     attribute in order to let the user distinguish between them. If no 'name'
+*     is specified for a filter, the key of the filter will be used instead.
+*/
+function cck_book_field_settings($op, $field) {
+  switch ($op) {
+    case 'form':
+      $form = array();
+
+      return $form;
+
+    case 'save':
+      return array();
+
+    case 'database columns':
+      $columns = array(
+        'descr' => array('type' => 'varchar', 'not null' => TRUE, 'default' => "0", 'sortable' => TRUE),
+        'depth' => array('type' => 'decimal', 'not null' => TRUE, 'default' => "0", 'sortable' => TRUE),
+        'width' => array('type' => 'decimal', 'not null' => TRUE, 'default' => "0", 'sortable' => TRUE),
+        'height' => array('type' => 'decimal', 'not null' => TRUE, 'default' => "0", 'sortable' => TRUE),
+        'thumbnail' => array('type' => 'integer', 'not null' => FALSE, 'default' => NULL, 'sortable' => TRUE),
+      );
+
+      // Database column - type=longtext if max_length > 255
+      if ($field['max_length'] == 0 || $field['max_length'] > 255) {
+        $columns['descr']['type'] = 'longtext';
+      }
+      else {
+        $columns['descr']['length'] = $field['max_length'];
+      }
+      return $columns;
+
+    case 'filters':
+      // View filters - operators for handling these fields
+      return array();
+  }
+}
+
+/**
+* Handle the parameters for a widget.
+*
+* @param $op
+*   The operation to be performed. Possible values:
+*   - "form": Display the widget settings form.
+*   - "validate": Check the widget settings form for errors.
+*   - "save": Declare which pieces of information to save back to the database.
+* @param $widget
+*   The widget on which the operation is to be performed.
+* @return
+*   This varies depending on the operation.
+*   - The "form" operation should return an array of form elements to add to
+*     the settings page.
+*   - The "validate" operation has no return value. Use form_set_error().
+*   - The "save" operation should return an array of names of form elements to
+*     be saved in the database.
+*/
+function cck_book_widget_settings($op, $widget) {
+  switch ($op) {
+    case 'form':
+      /* Get gallery vocabularies */
+      $vid = _image_gallery_get_vid();
+      $voc = taxonomy_get_vocabulary($vid);
+
+      /* Create form */
+      $form = array();
+      $form['gallery'] =  _taxonomy_term_select(
+        check_plain($voc->name), 'gallery', $widget['gallery'], $vid, false, intval($voc->multiple), '<' . t('All galleries') . '>');
+
+      return $form;
+
+    case 'validate':
+      $gal = $widget['gallery'];
+      if (!is_numeric($gal) 
+        || intval($gal) != $gal 
+        || $gal < 0) {
+        form_set_error('gallery', t('"Gallery" must be a gallery ID (positive integer) or all images (zero).'));
+      }
+      break;
+
+    case 'save':
+      return array('gallery');
+  }
+}
+
+/**
+* Define the behavior of a field type.
+*
+* @param $op
+*   What kind of action is being performed. Possible values:
+*   - "load": The node is about to be loaded from the database. This hook
+*     should be used to load the field.
+*   - "view": The node is about to be presented to the user. The module
+*     should prepare and return an HTML string containing a default
+*     representation of the field.
+*   - "validate": The user has just finished editing the node and is
+*     trying to preview or submit it. This hook can be used to check or
+*     even modify the node. Errors should be set with form_set_error().
+*   - "submit": The user has just finished editing the node and the node has
+*     passed validation. This hook can be used to modify the node.
+*   - "insert": The node is being created (inserted in the database).
+*   - "update": The node is being updated.
+*   - "delete": The node is being deleted.
+* @param &$node
+*   The node the action is being performed on. This argument is passed by
+*   reference for performance only; do not modify it.
+* @param $field
+*   The field the action is being performed on.
+* @param &$items
+* An array containing the values of the field in this node. Changes to this variable will
+* be saved back to the node object.
+* Note that, in order to ensure consistency, this variable contains an array regardless of
+* whether field is set to accept multiple values or not.
+* @return
+*   This varies depending on the operation.
+*   - The "load" operation should return an object containing extra values
+*     to be merged into the node object.
+*   - The "view" operation should return a string containing an HTML
+*     representation of the field data.
+*   - The "insert", "update", "delete", "validate", and "submit" operations
+*     have no return value.
+*
+* In most cases, only "view" and "validate" are relevant operations; the rest
+* have default implementations in content_field() that usually suffice.
+*/
+function cck_book_field($op, &$node, $field, &$items, $teaser, $page) {
+   switch ($op) {
+    case 'view':
+      // Boilerplate invocation of formatters
+      foreach ($items as $delta => $item) {
+        $items[$delta]['view'] = content_format($field, $item, 'default', $node);
+      }
+      return theme('field', $node, $field, $items, $teaser, $page);
+
+    case 'validate':
+      // Boilerplate stuff about allowed values
+      $allowed_values = text_allowed_values($field);
+
+      if (is_array($items)) {
+        foreach ($items as $delta => $item) {
+          $error_field = $field['field_name'].']['.$delta.'][value';
+          if ($item['descr'] != '') {
+            if (count($allowed_values) && !array_key_exists($item['value'], $allowed_values)) {
+              form_set_error($error_field, t('Illegal value for %name.', array('%name' => t($field['widget']['label']))));
+            }
+          }
+        }
+      }
+      break;
+  }
+}
+
+/**
+* Define the behavior of a widget.
+*
+* @param $op
+*   What kind of action is being performed. Possible values:
+*   - "prepare form values": The editing form will be displayed. The widget
+*     should perform any conversion necessary from the field's native storage
+*     format into the storage used for the form. Convention dictates that the
+*     widget's version of the data should be stored beginning with "default".
+*   - "form": The node is being edited, and a form should be prepared for
+*     display to the user.
+*   - "validate": The user has just finished editing the node and is
+*     trying to preview or submit it. This hook can be used to check or
+*     even modify the node. Errors should be set with form_set_error().
+*   - "process form values": The inverse of the prepare operation. The widget
+*     should convert the data back to the field's native format.
+*   - "submit": The user has just finished editing the node and the node has
+*     passed validation. This hook can be used to modify the node.
+* @param &$node
+*   The node the action is being performed on. This argument is passed by
+*   reference for performance only; do not modify it.
+* @param $field
+*   The field the action is being performed on.
+* @param &$items
+* An array containing the values of the field in this node. Changes to this variable will
+* be saved back to the node object.
+* Note that, in order to ensure consistency, this variable contains an array regardless of
+* whether field is set to accept multiple values or not.
+* @return
+*   This varies depending on the operation.
+*   - The "form" operation should return an array of form elements to display.
+*   - Other operations have no return value.
+*/
+function cck_book_widget($op, &$node, $field, &$items) {
+  $delim = '&';
+
+  switch ($op) {
+    case 'prepare form values':
+      break;
+
+    case 'form':
+      // Need some CSS to make it pretty
+      drupal_add_css(drupal_get_path('module', 'cck_book') . '/form.css', 'module');
+
+      // Start form API by creating an array named the same as the field name, with tree=true
+      $form = array();
+      $form[$field['field_name']] = array('#tree' => TRUE);
+
+      // By default, non-multiple, but we can override this later
+      $delta_from = 0;
+      $delta_to = 1;
+
+      // If multiple values, enclose in a fieldset and set $delta_to to be the number of items + 3
+      if ($field['multiple']) {
+        $form[$field['field_name']]['#type']  = 'fieldset';
+        $form[$field['field_name']]['#title'] = t($field['widget']['label']);
+        $form[$field['field_name']]['#description'] = t($field['widget']['description']);
+        $form[$field['field_name']]['#collapsible'] = 'yes';
+
+        // Add an extra 3 blank fields - this is standard CCK behaviour
+        // Some sort of click-to-create-new Javascript would be friendlier
+	$delta_to = count($items) + 3;
+      }
+
+      // Handle multiple or single values, plus some blanks
+      for ($delta = $delta_from; $delta < $delta_to; $delta++) {
+        $form[$field['field_name']][$delta] = cck_book_complex_input($field, $delta, $items[$delta]);
+      }
+
+      return $form;
+
+    case 'process form values':
+      if ($field['multiple']) {
+        // Filter out blank multiple values based on description
+        // If we don't do this then 
+        $temp_items = array();
+        foreach (array_keys($items) as $i) {
+          if (strlen($items[$i]['descr'])) {
+            $temp_items[] = $items[$i];
+          }
+        }
+        // Overwrite $items with filtered array
+        $items = $temp_items;
+      }
+
+      break;
+  }
+}
+
+/**
+ * Multiple field for format
+ *
+ * @param $field the field specification
+ * @param $delta the array offset for this particular item
+ * @param $data the data content of this particular item
+ * @returns form API array for a single field
+ */
+function cck_book_complex_input($field, $delta, $data = array()) {
+  // Container fieldset
+  $form = array(
+    '#type' => 'fieldset',
+    '#attributes' => array('class' => 'fieldset-bookformat'),
+  );
+
+  // Four text fields
+  $four_fields = array(
+    array(
+      'label' => 'Brief description',
+      'name'  => 'descr',
+      'size'  => '20'
+    ),
+    array(
+      'label' => 'Depth/ins',
+      'name'  => 'depth',
+      'size'  => '4'
+    ),
+    array(
+      'label' => 'Width/ins',
+      'name'  => 'width',
+      'size'  => '4'
+    ),
+    array(
+      'label' => 'Height',
+      'name'  => 'height',
+      'size'  => '4'
+    ),
+  );
+
+  // Loop over text field config and insert into form container
+  for($i = 0; $i < count($four_fields); $i++) {
+    $f = $four_fields[$i];
+    $form[$f['name']] = array(
+      '#type' => 'textfield',
+      '#title' => t($f['label']),
+      '#default_value' => isset($data[$f['name']]) ? $data[$f['name']] : '',
+      '#required' => $field['required'],
+      '#size' => $f['size'],
+    );
+  }
+
+  // Add thumbnail dropdown
+
+  // Get thumbnail nodes via chosen gallery taxonomy
+  $tids = array();
+  if ($field['widget']['gallery']) {
+    // Add a valid $tid to the taxonomy ID array
+    $tids[] = $field['widget']['gallery'];
+  }
+  $q = taxonomy_select_nodes($tids, 'or', 'all', false);
+
+  // Assemble dropdown options
+  $wires = array(0 => '<' . t('No image') . '>');
+  while($row = db_fetch_array($q)) {
+    $wires[$row['nid']] = $row['title'];
+  }
+  // Form element
+  $form['thumbnail'] = array(
+    '#type' => 'select',
+    '#title' => t('Thumbnail image'),
+    '#description' => t('Image of this format of book. If no thumbnail, leave blank.'),
+    '#options' => $wires,
+    '#default_value' => isset($data['thumbnail']) ? $data['thumbnail'] : 0
+  );
+
+  return $form;	
+}
+
+/**
+* Declare information about a formatter.
+*
+* @return
+*   An array keyed by formatter name. Each element of the array is an associative
+*   array with these keys and values:
+*   - "label": The human-readable label for the formatter.
+*   - "field types": An array of field type names that can be displayed using
+*     this formatter.
+*/
+function cck_book_field_formatter_info() {
+  return array(
+    'default' => array(
+      'label' => 'Default',
+      'field types' => array('bookformat'),
+    ),
+    'plain' => array(
+      'label' => 'Plain text',
+      'field types' => array('bookformat'),
+    ),
+    'trimmed' => array(
+      'label' => 'Trimmed',
+      'field types' => array('bookformat'),
+    ),
+  );
+}
+
+/**
+* Prepare an individual item for viewing in a browser.
+*
+* @param $field
+*   The field the action is being performed on.
+* @param $item
+*   An array, keyed by column, of the data stored for this item in this field.
+* @param $formatter
+*   The name of the formatter being used to display the field.
+* @param $node
+*   The node object, for context. Will be NULL in some cases.
+*   Warning : when displaying field retrieved by Views, $node will not
+*   be a "full-fledged" node object, but an object containg the data returned
+*   by the Views query (at least nid, vid, changed)
+* @return
+*   An HTML string containing the formatted item.
+*
+* In a multiple-value field scenario, this function will be called once per
+* value currently stored in the field. This function is also used as the handler
+* for viewing a field in a views.module tabular listing.
+*
+* It is important that this function at the minimum perform security
+* transformations such as running check_plain() or check_markup().
+*/
+function cck_book_field_formatter($field, $item, $formatter, $node) {
+  if (!isset($item['value'])) {
+    return '';
+  }
+  if ($field['text_processing']) {
+    $text = check_markup($item['value'], $item['format'], is_null($node) || isset($node->in_preview));
+  }
+  else {
+    $text = check_plain($item['value']);
+  }
+ 
+  switch ($formatter) {
+    case 'plain':
+      return strip_tags($text);
+   
+    case 'trimmed':
+      return node_teaser($text, $field['text_processing'] ? $item['format'] : NULL);
+   
+    default:
+      return $text;
+  }
+}
