@@ -2,3 +2,7 @@ name: jpstacey
 recipe: drupal7
 config:
   webroot: .
+  php: '7.0'
+  via: apache:2.4
+  xdebug: false
+  database: mariadb
